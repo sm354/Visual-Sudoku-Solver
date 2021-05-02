@@ -21,5 +21,12 @@ create a supervised dataset from limited labelled dataset
 
 ## 3. Recurrent Relational Network
 
+- [ ] scripts ready (implementation of RRN)
+- [ ] retrain RRN on actual dataset (depends on Image clustering)
+- [ ] Use data augmentation i.e. permutation as mentioned in paper
+
 ## 4. Joining all the dots together
+
+- [ ] literature review 
+- [ ] something about 0-1 loss (from RL paradigm)
 
