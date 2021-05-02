@@ -12,13 +12,13 @@ class MLP_for_RRN(nn.Module):
         self.fc1=nn.Linear(input_dim, output_dim)
         self.fc2=nn.Linear(output_dim, output_dim)
         self.fc3=nn.Linear(output_dim, output_dim)
-        self.fc4=nn.Linear(output_dim, output_dim)
+        # self.fc4=nn.Linear(output_dim, output_dim)
     
     def forward(self, inp):
         out = F.relu(self.fc1(inp))
         out = F.relu(self.fc2(out))
-        out = F.relu(self.fc3(out))
-        out = self.fc4(out)
+        out = self.fc3(out)
+        # out = self.fc4(out)
         return out
 
 def compute_cp(pred, true): # pred and true are of shape = batch,81
@@ -71,38 +71,38 @@ loss_fn = nn.CrossEntropyLoss()
 
 ############################ get edges
 # find the required edges in the graph to have communication of message signals
-# indices_of_cells=np.arange(0,sudoku_cells*sudoku_cells).reshape((sudoku_cells,sudoku_cells))
-# edges_row, edges_col, edges_in_3x3=[],[],[]
-# for i in range(9):
-#     vector = indices_of_cells[i,:]
-#     edges_row += [(i,j) for i in vector for j in vector if i!=j]
-#     vector = indices_of_cells[:,i]
-#     edges_col += [(i,j) for i in vector for j in vector if i!=j]
-# for i in range(3):
-#     for j in range(3):
-#         vector = indices_of_cells[3*i:3*(i+1),3*j:3*(j+1)].reshape(-1)
-#         edges_in_3x3 += [(i,j) for i in vector for j in vector if i!=j]
-
-# edges = list(set(edges_row + edges_col + edges_in_3x3))
-# edges = [ (i + (b*81), j + (b*81)) for b in range(batch_size) for i,j in edges]
-# edges = torch.tensor(edges).long().to(device)
-
-
-def cross(a):
-    return [(i, j) for i in a.flatten() for j in a.flatten() if not i == j]
-
-idx = np.arange(81).reshape(9, 9)
-rows, columns, squares = [], [], []
+indices_of_cells=np.arange(0,sudoku_cells*sudoku_cells).reshape((sudoku_cells,sudoku_cells))
+edges_row, edges_col, edges_in_3x3=[],[],[]
 for i in range(9):
-    rows += cross(idx[i, :])
-    columns += cross(idx[:, i])
+    vector = indices_of_cells[i,:]
+    edges_row += [(i,j) for i in vector for j in vector if i!=j]
+    vector = indices_of_cells[:,i]
+    edges_col += [(i,j) for i in vector for j in vector if i!=j]
 for i in range(3):
     for j in range(3):
-        squares += cross(idx[i * 3:(i + 1) * 3, j * 3:(j + 1) * 3])
+        vector = indices_of_cells[3*i:3*(i+1),3*j:3*(j+1)].reshape(-1)
+        edges_in_3x3 += [(i,j) for i in vector for j in vector if i!=j]
 
-edges_base = list(set(rows + columns + squares))
-batched_edges = [(i + (b * 81), j + (b * 81)) for b in range(batch_size) for i, j in edges_base]
-edges = torch.Tensor(batched_edges).long()#.to(device)
+edges = list(set(edges_row + edges_col + edges_in_3x3))
+# edges = [ (i + (b*81), j + (b*81)) for b in range(batch_size) for i,j in edges]
+edges = torch.tensor(edges).long().to(device)
+
+
+# def cross(a):
+#     return [(i, j) for i in a.flatten() for j in a.flatten() if not i == j]
+
+# idx = np.arange(81).reshape(9, 9)
+# rows, columns, squares = [], [], []
+# for i in range(9):
+#     rows += cross(idx[i, :])
+#     columns += cross(idx[:, i])
+# for i in range(3):
+#     for j in range(3):
+#         squares += cross(idx[i * 3:(i + 1) * 3, j * 3:(j + 1) * 3])
+
+# edges_base = list(set(rows + columns + squares))
+# batched_edges = [(i + (b * 81), j + (b * 81)) for b in range(batch_size) for i, j in edges_base]
+# edges = torch.Tensor(batched_edges).long()#.to(device)
 
 
 
@@ -151,13 +151,21 @@ for epoch in range(num_epochs):
             n_edges = edges.shape[0]
             n_embed = H.shape[1]
             assert n_embed == 96
-            message_inputs = H[edges]
-            message_inputs = message_inputs.view(n_edges, 2*n_embed)
-            messages = message_mlp(message_inputs)
 
-            updates = torch.zeros(n_nodes, n_embed).to(device)
+            H = H.view(-1,81,96)
+
+            assert H.shape[0] == 32
+
+            message_inputs = H[:,edges]
+            message_inputs = message_inputs.view(-1, 2*96)
+
+            messages = message_mlp(message_inputs).view(H.shape[0],-1,96)
+
+            updates = torch.zeros(H.shape).to(device)
             idx_j = edges[:, 1].to(device)
-            H = updates.index_add(0, idx_j, messages)
+            H = updates.index_add(1, idx_j, messages)
+
+            H = H.view(-1,96)
 
             H = mlp_for_lstm_inp(torch.cat([H, X], dim=1))
             HiddenState, CellState = LSTM(H, (HiddenState, CellState))
