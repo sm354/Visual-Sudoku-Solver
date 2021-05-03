@@ -21,9 +21,10 @@ create a supervised dataset from limited labelled dataset
 
 ## 3. Recurrent Relational Network
 
-- [ ] scripts ready (implementation of RRN)
-- [ ] retrain RRN on actual dataset (depends on Image clustering)
+- [x] scripts ready (implementation of RRN) ([rep referred](https://github.com/wDaniec/pytorch-RNN))
+- [ ] retrain RRN (using 8x8 rules) on actual dataset (depends on Image clustering)
 - [ ] Use data augmentation i.e. permutation as mentioned in paper
+- [ ] Use policy gradients i.e. additional 0-1 loss
 
 #### Experimental observations on 9x9 sudoku dataset
 
@@ -33,6 +34,9 @@ create a supervised dataset from limited labelled dataset
 3. In repo 16 dimensional one hot encoding of cell content is used (the last 6 values are zero always) and this is fed into mlp for getting 96 dimensional x. Using a 16 dimensional embedding (learnable) introduced more parameters and the learning curve shows that it is slightly slower in learning. But this may be because of smaller dataset, i.e. we are using more richer model now, but on complete data the richer model might work well
    1. Using nn.Embedding.from_pretrained or nn.Linear showed no difference; we ll use former
 4. Concatenating row_col embedding (one hot) slowed down learning but most likely because of small dataset
+5. Even after using hidden state, but with only cell content embedding (not row and column), then all the three versions of RRN (repo code, copy_from_repo code, and our RRN code) work i.e. is able to learn (though slowly)
+
+**note** : these observations are on 9x9 sudoku dataset and doesn't have learnt embeddings also. _Now we can use exact architecture given in the paper._
 
 
 
@@ -45,5 +49,4 @@ To try
 ## 4. Joining all the dots together
 
 - [ ] literature review : https://arxiv.org/pdf/1905.12149.pdf
-- [ ] something about 0-1 loss (from RL paradigm)
 
