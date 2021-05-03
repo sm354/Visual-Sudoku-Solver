@@ -135,9 +135,9 @@ class RRN(nn.Module):
             inp_to_lstm = self.mlp_for_lstm_inp(torch.cat([final_msgs,x],dim=1))
             h, c = self.LSTM(inp_to_lstm, (h,c)) if t!=0 else self.LSTM(inp_to_lstm, (torch.zeros(x.shape).to(device),torch.zeros(x.shape).to(device)))
             
-            h_for_msgs = c
+            h_for_msgs = h
 
-            o = self.r_to_o_mlp(c)
+            o = self.r_to_o_mlp(h)
             o_t.append(o)
         
         out = torch.stack(o_t) # shape : num_steps, batch_size*9*9, sudoku_cells+1
