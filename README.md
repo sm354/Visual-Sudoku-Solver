@@ -35,6 +35,7 @@ create a supervised dataset from limited labelled dataset
    1. Using nn.Embedding.from_pretrained or nn.Linear showed no difference; we ll use former
 4. Concatenating row_col embedding (one hot) slowed down learning but most likely because of small dataset
 5. Even after using hidden state, but with only cell content embedding (not row and column), then all the three versions of RRN (repo code, copy_from_repo code, and our RRN code) work i.e. is able to learn (though slowly)
+6. Also, detach() vs detach().clone() showed latter is better - possibly because clone() allows backprop; so sticking with latter for now
 
 **note** : these observations are on 9x9 sudoku dataset and doesn't have learnt embeddings also. _Now we can use exact architecture given in the paper._
 
