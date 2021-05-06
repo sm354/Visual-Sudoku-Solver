@@ -1,0 +1,14 @@
+===============================
+2338481.pbshpc
+khas060.hpc.iitd.ac.in
+===============================
+epoch: 0 discriminator loss: 3.133830603780225 generator loss: 0.035609346270452986 lr(gen and dis) = 2e-05
+epoch: 1 discriminator loss: 5.780737835019827 generator loss: 5.146436516508146e-05 lr(gen and dis) = 2e-05
+epoch: 2 discriminator loss: 7.995097649395466 generator loss: 1.2470200361663909e-06 lr(gen and dis) = 2e-05
+epoch: 3 discriminator loss: 9.997875932902097 generator loss: 4.4793312762702456e-08 lr(gen and dis) = 2e-05
+epoch: 4 discriminator loss: 11.597269528210163 generator loss: 2.5503325592687865e-09 lr(gen and dis) = 2e-05
+epoch: 5 discriminator loss: 12.704960270673036 generator loss: 3.2652156449139437e-10 lr(gen and dis) = 2e-05
+epoch: 6 discriminator loss: 13.235269104391337 generator loss: 1.2349334554961899e-10 lr(gen and dis) = 2e-05
+epoch: 7 discriminator loss: 13.517322798520327 generator loss: 6.854532866654161e-11 lr(gen and dis) = 2e-05
+epoch: 8 discriminator loss: 13.701638703048229 generator loss: 4.805623777387469e-11 lr(gen and dis) = 2e-05
+epoch: 9 discriminator loss: 13.84710028871894 generator loss: 4.377214129352991e-11 lr(gen and dis) = 2e-05

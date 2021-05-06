@@ -20,8 +20,8 @@ def load_data(query_data, target_data, oneshot_data_path, nclusters):
 	if(nclusters == 8):
 		X = np.load(target_data)
 	elif(nclusters == 9):
-		X_target=np.load(query_data)
 		X_query=np.load(target_data)
+		X_target=np.load(query_data)
 		X = np.concatenate((X_query, X_target))
 	
 	oneshot_data = np.load(oneshot_data_path)
@@ -107,7 +107,7 @@ def perform_pytorchkmeans(X, x_oneshot_data, nclusters):
 
 def save_cluster_labels(labels, oneshot_labels, labels_output_path, oneshot_labels_output_path):
 	np.save(labels_output_path, labels)
-	np.save(oneshot_labels_output_path, labels)
+	np.save(oneshot_labels_output_path, oneshot_labels)
 
 if __name__ == "__main__":
 

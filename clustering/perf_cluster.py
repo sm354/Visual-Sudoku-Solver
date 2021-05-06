@@ -5,7 +5,7 @@ import numpy as np
 def is_set_correct(array):
     # print(array)
     # print(set(array))
-    if len(set(array)) == 8:
+    if len(set(array)) >= 6:
         return True
     return False
 
