@@ -11,7 +11,7 @@
 #PBS -l select=1:ngpus=1
 
 ### Specify "wallclock time" required for this job, hhh:mm:ss
-#PBS -l walltime=18:00:00
+#PBS -l walltime=12:00:00
 
 #PBS -l software=python
 # After job starts, must goto working directory. 
@@ -24,6 +24,7 @@ cd $PBS_O_WORKDIR
 
 module purge
 module load apps/anaconda/3
+# module load apps/pytorch/1.6.0/gpu/anaconda3
 
 #minibatch-kmeans
 # python clustering/clustering.py --savedir results/kmeans-minibatch --query_datapath ../sudoku_array_data/query_64k_images.npy --target_datapath ../sudoku_array_data/target_64k_images.npy --oneshot_datapath "../Assignment 2/sample_images.npy" --nclusters 8 --output_label_file results/kmeans-minibatch/kmeans_mb_t8c_labels.npy --output_oneshot_label_file results/kmeans-minibatch/kmeans_mb_t8c_oneshot_labels.npy --method minbatch-kmeans
@@ -40,7 +41,7 @@ module load apps/anaconda/3
 # python label2symbolic_sudoku.py --labels_path results/kmeans-minibatch/kmeans_mb_qt9c_labels.npy --output_symbolic_sud_path results/symbolic_data/symbolic_sudoku_kmeans_mb_tq.npy
 
 #train GAN
-python cGAN/train_cgan.py --root_path_to_save results/GAN_out/E2_150epochs --traindatapath ../sudoku_array_data/query_64k_images.npy --trainlabelspath results/kmeans-minibatch/kmeans_mb_qt9c_labels.npy --train_or_gen train --num_epochs 150
+python cGAN/train_cgan.py --root_path_to_save results/GAN_out/E2_100epochs --traindatapath ../sudoku_array_data/query_64k_images.npy --trainlabelspath results/kmeans-minibatch/kmeans_mb_qt9c_labels.npy --train_or_gen train --num_epochs 100
 
 #validate/generate from gan generator
 

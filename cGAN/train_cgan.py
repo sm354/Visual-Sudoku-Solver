@@ -1,4 +1,4 @@
-from sklearn.datasets import fetch_openml
+# from sklearn.datasets import fetch_openml
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -149,10 +149,16 @@ def load_gan_data_fromnumpy(traindatapath, trainlabelspath):
     X = np.load(traindatapath)
     labels = np.load(trainlabelspath)
 
+    X = -1*((X)/255. -1.) # for normalizing and making it black images
+
     data_Y=torch.from_numpy(labels[:640000].astype(int))
     data_X=torch.from_numpy(X[:640000].reshape(-1, 28*28))
 
-    # print(data_X.shape, data_Y.shape)
+    print('data loaded')
+    print('data_X = ', data_X)
+    print('data_Y = ', data_Y)
+    print('data_X shape = ', data_X.shape)
+    print('data_Y shape = ', data_Y.shape)
 
     return data_X, data_Y
 
@@ -184,7 +190,7 @@ def get_params_models(data_X, data_Y):
 
     return generator, discriminator, optim_gen, optim_disc, loss_fn, data_loader, numclasses
 
-def train_cgan(generator, discriminator, optim_gen, optim_disc, loss_fn, data_loader, numclasses, num_epochs = 100):
+def train_cgan(generator, discriminator, optim_gen, optim_disc, loss_fn, data_loader, numclasses, root_path_to_save, num_epochs = 100):
     genlosslist = []
     dislosslist = []
     num_epochs = num_epochs
@@ -230,8 +236,8 @@ def train_cgan(generator, discriminator, optim_gen, optim_disc, loss_fn, data_lo
             # scheduler_gen.step()
 
             '''show images generated and real'''
-            # if(batch%500 == 0):
-            #     print("epoch:",ep,"discriminator loss:",disc_loss/(batch+1),"generator loss:",gen_loss/(batch+1), "lr(gen and dis) = {}".format(optim_gen.param_groups[0]['lr']))
+            if(batch%500 == 0):
+                print("epoch:",ep,"discriminator loss:",disc_loss/(batch+1),"generator loss:",gen_loss/(batch+1), "lr(gen and dis) = {}".format(optim_gen.param_groups[0]['lr']))
             #     # sample_img_grid(generator, device, numclasses)
             #     sample_imgs(generator, device, numclasses)
 
@@ -247,6 +253,12 @@ def train_cgan(generator, discriminator, optim_gen, optim_disc, loss_fn, data_lo
         genlosslist.append(gen_loss/(batch+1))
         dislosslist.append(disc_loss/(batch+1))
 
+        #save plots
+        saveplots(genlosslist, dislosslist, root_path_to_save)
+
+        #generate some data from each class and save, to see the generated images
+        sample_img_grid(generator, device, numclasses, root_path_to_save)
+
         print("epoch:",ep,"discriminator loss:",disc_loss/(batch+1),"generator loss:",gen_loss/(batch+1), "lr(gen and dis) = {}".format(optim_gen.param_groups[0]['lr']))
 
 
@@ -261,6 +273,8 @@ def saveplots(genlist, dislist, img_savepath):
 
 
 if __name__ == "__main__":
+
+    torch.manual_seed(0)
 
     parser = argparse.ArgumentParser()
     # data path for training
@@ -286,9 +300,9 @@ if __name__ == "__main__":
 
         data_X, data_Y = load_gan_data_fromnumpy(args.traindatapath, args.trainlabelspath)
 
-        generator, discriminator, optim_disc, optim_gen, loss_fn, data_loader, numclasses = get_params_models(data_X, data_Y)
+        generator, discriminator, optim_gen, optim_disc, loss_fn, data_loader, numclasses = get_params_models(data_X, data_Y)
 
-        genlosslist, dislosslist = train_cgan(generator, discriminator, optim_gen, optim_disc, loss_fn, data_loader, numclasses, num_epochs = args.num_epochs)
+        genlosslist, dislosslist = train_cgan(generator, discriminator, optim_gen, optim_disc, loss_fn, data_loader, numclasses, args.root_path_to_save, num_epochs = args.num_epochs)
 
         # save generator and discriminator
         torch.save(generator, os.path.join(args.root_path_to_save, "gen_trained.pth"))

@@ -20,8 +20,8 @@ def load_data(query_data, target_data, oneshot_data_path, nclusters):
 	if(nclusters == 8):
 		X = np.load(target_data)
 	elif(nclusters == 9):
-		X_query=np.load(target_data)
-		X_target=np.load(query_data)
+		X_query=np.load(query_data)
+		X_target=np.load(target_data)
 		X = np.concatenate((X_query, X_target))
 	
 	oneshot_data = np.load(oneshot_data_path)
@@ -127,7 +127,7 @@ if __name__ == "__main__":
 		os.makedirs(args.savedir)
 
 	#loading data
-	X, x_oneshot_data = load_data(args.query_datapath, args.target_datapath, args.oneshot_datapath, args.nclusters )
+	X, x_oneshot_data = load_data(args.query_datapath, args.target_datapath, args.oneshot_datapath, args.nclusters)
 
 	#performing clustering
 	if(args.method == 'minbatch-kmeans'):
