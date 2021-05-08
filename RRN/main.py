@@ -18,14 +18,17 @@ def compute_micro_score(pred, true):
 
 parser = argparse.ArgumentParser(description='Training Recurrent Relational Network on Sudoku')
 parser.add_argument('--data_dir', type=str)
-# parser.add_argument('--output_file', type=str)
 parser.add_argument('--num_epochs',type=int,default=100,help='number of epochs of training')
 parser.add_argument('--num_steps',type=int,default=32,help='number of steps in RRN')
 parser.add_argument('--batch_size',type=int,default=32,help='give batch size (of optimization algo)')
 parser.add_argument('--save_plots',default=False,help='give argument if plots to be plotted')
 parser.add_argument('--resume',default=False,help='give argument if training has to be resumed')
 parser.add_argument('--model_file',type=str,default='./RRN.pth',help='give path to save model')
+parser.add_argument('--message',type=str,default=False,help='give any message if it needs to be printed')
 args=parser.parse_args()
+
+if args.message!=False:
+    print(args.message)
 
 batch_size=args.batch_size
 num_steps=args.num_steps
@@ -66,25 +69,23 @@ train_micro,val_micro=[],[]
 print('beginning training')
 num_epochs=args.num_epochs
 for epoch in range(num_epochs):
-
+    print("epoch:",epoch)
     #training
+    # model.train()
     lss=0
     total, correct, micro_score = 0, 0, 0
     for batch_id, (X,Y) in enumerate(train_data_loader):
-        if X.shape[0] != batch_size:
+        if X.shape[0] != batch_size: # probably useful for avoiding exploding/vanishing gradients
             continue
         X, Y = X.to(device).long(), Y.to(device)
         Y = Y.view(-1)
         optimizer.zero_grad()
-        Y_ = model(X)
-        l=0
-        for i in range(num_steps):
-            ls=loss_fn(Y_[i],Y.long())
-            l+=ls
-        Y_pred = Y_[-1].argmax(dim=1)
+        
+        Y_, l = model(X,Y,loss_fn)
+        Y_pred = Y_.argmax(dim=1)
         l /= batch_size
         l.backward()
-        # nn.utils.clip_grad_norm_(model.parameters(), 5) # clip gradient to 5
+
         optimizer.step()
         Y_pred = Y_pred.view(-1,sudoku_cells*sudoku_cells)
         Y = Y.view(-1,sudoku_cells*sudoku_cells)
@@ -95,16 +96,16 @@ for epoch in range(num_epochs):
         total += Y.shape[0]
         micro_correct_digits = compute_micro_score(Y_pred.cpu(),Y.long().cpu()) # this finds percentage of correct predicited digits and then averaged over batch
         micro_score += micro_correct_digits
+
     lss /= batch_id
     micro_score /= batch_id
-    print("epoch:",epoch,"| train loss:",lss,"| train cp:",100.*correct/total,"| train micro:",micro_score)
+    print("train loss:",lss,"| train cp:",100.*correct/total,"| train micro:",micro_score)
     train_loss.append(lss)
     train_cp.append(100.*correct/total)
     train_micro.append(micro_score)
-    # print(Y_pred[0])
-    # print(Y[0])
 
     #validation
+    # model.eval()
     lss=0
     total,correct,micro_score = 0,0,0
     with torch.no_grad():
@@ -113,12 +114,10 @@ for epoch in range(num_epochs):
                 continue
             X, Y = X.to(device).long(), Y.to(device)
             Y = Y.view(-1)
-            Y_ = model(X)
-            l=0
-            for i in range(num_steps):
-                ls=loss_fn(Y_[i],Y.long())
-                l+=ls
-            Y_pred = Y_[-1].argmax(dim=1)
+            
+            Y_,l = model(X,Y,loss_fn)
+            Y_pred = Y_.argmax(dim=1)
+
             l /= batch_size
             Y_pred = Y_pred.view(-1,sudoku_cells*sudoku_cells)
             Y = Y.view(-1,sudoku_cells*sudoku_cells)
@@ -128,13 +127,13 @@ for epoch in range(num_epochs):
             total += Y.shape[0]
             micro_correct_digits = compute_micro_score(Y_pred.cpu(),Y.long().cpu()) # this finds percentage of correct predicited digits and then averaged over batch
             micro_score += micro_correct_digits
+
     lss /= batch_id
     micro_score /= batch_id
-    print("epoch:",epoch,"| val loss:",lss,"| val cp:",100.*correct/total,"| val micro:",micro_score)
+    print("val loss:",lss,"| val cp:",100.*correct/total,"| val micro:",micro_score)
     val_loss.append(lss)
     val_cp.append(100.*correct/total)
     val_micro.append(micro_score)
     
+    torch.save(model.state_dict(),args.model_file)
     # scheduler.step(lss)
-
-torch.save(model.state_dict(),args.model_file)
