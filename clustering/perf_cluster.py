@@ -44,12 +44,13 @@ def clustering_accuracy(labels):
     return final_bool_arr.sum()/final_bool_arr.shape[0], subatomic_correct/(3*8*labels.shape[0])
 
 
-labels = np.load("results/kmeans-minibatch/kmeans_mb_qt9c_labels.npy")
+labels = np.load("/home/ee/btech/ee1180957/scratch/Harman/DL-ASS2/COL870-Assignment-2/results/kmeans-minibatch/kmeans_mb_qt9c_labels.npy")
+# labels = np.load("/home/ee/btech/ee1180957/scratch/Harman/DL-ASS2/COL870-Assignment-2/results/kmeans-minibatch/kmeans_mb_t8c_labels.npy")
 # labels = np.load("results/kmeans-minibatch/kmeans_mb_t8c_labels.npy")
 
 # labels = np.load("results/kmeans-pytorch/kmeans_pyt_t8c_labels.npy")
 
 print(labels[0:1000])
 print(labels.shape)
-print(clustering_accuracy(labels[:64000]))
-# print(clustering_accuracy(labels))
+# print(clustering_accuracy(labels[:64000]))
+print(clustering_accuracy(labels[640000:]))

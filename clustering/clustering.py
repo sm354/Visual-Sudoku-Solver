@@ -12,6 +12,8 @@ import torch
 from sklearn.cluster import MiniBatchKMeans, KMeans
 from sklearn import decomposition
 import torch
+from sklearn.metrics import pairwise_distances
+
 
 
 def load_data(query_data, target_data, oneshot_data_path, nclusters):
@@ -105,6 +107,76 @@ def perform_pytorchkmeans(X, x_oneshot_data, nclusters):
 
 	return labels, cluster_centers, predicted_clusters_oneshot_targets
 
+def perform_minibatchkmeans_sampled(X, x_oneshot_data, nclusters):
+	'''only works for 9 classes currently ie not for 8'''
+	oneshot_data = x_oneshot_data[:-1]
+	#note nclusters should be same as shape[0] of x_oneshot_data
+	kmeans = MiniBatchKMeans(n_clusters=nclusters, init = oneshot_data, random_state=0, batch_size = 1000).fit(X)
+	
+	cluster_centers = kmeans.cluster_centers_
+	labels  = kmeans.labels_
+
+	print('cluster-centers = \n', cluster_centers)
+	print('cluster-centers shape= ', cluster_centers.shape)
+	print('label shape = ', labels.shape)
+
+	# predicting labels of one shot data, note we started of initisalizing cluster centers using this data only
+	predicted_clusters_oneshot_data = kmeans.predict(oneshot_data)
+	print("labels of one shot data = ", predicted_clusters_oneshot_data)
+
+	#select closest k=15000 points for each cluster, closest to oneshot data
+	num_points_perclass = 15000
+	querypoints = 640000
+	X_new = []
+	labels_new = []
+	for i in range(np.unique(labels).shape[0]):
+		print('class = {}'.format(i))
+		X_class = X[0:querypoints][labels[:querypoints] == i]
+		labels_class = labels[labels == i]
+		if(i!=7 and i!=4):
+			print(X_class.shape)
+			dist  = pairwise_distances(oneshot_data[i].reshape(1, -1), X_class, metric = 'euclidean')
+			dist = dist.reshape(dist.shape[1], )
+			partition = np.argpartition(dist, num_points_perclass)
+			X_class_sampled = X_class[partition[:num_points_perclass]]
+			labels_class_sampled = labels_class[partition[:num_points_perclass]]    
+		
+		if(i==7):
+			dist_7 = pairwise_distances(oneshot_data[7].reshape(1, -1), X_class, metric = 'euclidean')
+			dist_4 = pairwise_distances(oneshot_data[4].reshape(1, -1), X_class, metric = 'euclidean')
+			dist_0 = pairwise_distances(oneshot_data[0].reshape(1, -1), X_class, metric = 'euclidean')
+
+			dist = 20* dist_7/dist_4 + dist_7/dist_0
+			# dist = dist_7
+			# dist = dist_7/dist_4
+			# dist_ = dist_4/dist_7
+			dist = dist.reshape(dist.shape[1], )
+			partition = np.argpartition(dist, num_points_perclass)
+			X_class_sampled = X_class[partition[:num_points_perclass]]  
+			labels_class_sampled = labels_class[partition[:num_points_perclass]]    
+
+
+		if(i==4):
+			dist_7 = pairwise_distances(oneshot_data[7].reshape(1, -1), X_class, metric = 'euclidean')
+			dist_4 = pairwise_distances(oneshot_data[4].reshape(1, -1), X_class, metric = 'euclidean')
+			dist = dist_4/dist_7
+			dist = dist.reshape(dist.shape[1], )
+			partition = np.argpartition(dist, num_points_perclass)
+			X_class_sampled = X_class[partition[:num_points_perclass]]  
+			labels_class_sampled = labels_class[partition[:num_points_perclass]]    
+
+		X_new.append(X_class_sampled)
+		labels_new.append(labels_class_sampled)
+
+	X = np.concatenate(X_new)
+	labels = np.concatenate(labels_new)
+
+	print('sampled X shape = ', X.shape)
+	print('corresponding labels shape = ', labels.shape)
+
+	return labels, cluster_centers, predicted_clusters_oneshot_data, X * 255.
+
+
 def save_cluster_labels(labels, oneshot_labels, labels_output_path, oneshot_labels_output_path):
 	np.save(labels_output_path, labels)
 	np.save(oneshot_labels_output_path, oneshot_labels)
@@ -121,6 +193,7 @@ if __name__ == "__main__":
 	parser.add_argument('--output_label_file', type=str, default = None)
 	parser.add_argument('--output_oneshot_label_file', type=str, default = None)
 	parser.add_argument('--method', type=str)
+	parser.add_argument('--sampled_X_path', type=str, default = None)
 	args=parser.parse_args()
 
 	if not os.path.exists(args.savedir):
@@ -133,9 +206,13 @@ if __name__ == "__main__":
 	if(args.method == 'minbatch-kmeans'):
 		labels, cluster_centers, oneshot_labels = perform_minibatchkmeans(X, x_oneshot_data, args.nclusters)
 
+	if(args.method == 'minibatch-kmeans-sampled'):
+		labels, cluster_centers, oneshot_labels, data_X = perform_minibatchkmeans_sampled(X, x_oneshot_data, args.nclusters)
+		np.save(args.sampled_X_path, data_X)
+
 	elif(args.method == 'pytorch-kmeans'):
 		labels, cluster_centers, oneshot_labels  = perform_pytorchkmeans(X, x_oneshot_data, args.nclusters)
-
+		
 	# elif(args.method == 'n2d'):
 	# 	labels, cluster_centers = perform_n2d_clustering(X, x_oneshot_data, args.nclusters)
 

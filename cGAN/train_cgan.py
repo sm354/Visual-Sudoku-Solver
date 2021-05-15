@@ -52,6 +52,7 @@ def sample_img_grid(generator, device, numclasses, img_savepath = None):
 
     if(img_savepath is not None):
         plt.savefig(os.path.join(img_savepath, "gen_image_grid.jpg"), dpi = 100)
+    plt.close()
 
     #save the figure
     # generator.train()
@@ -148,11 +149,17 @@ class Discriminator(nn.Module):
 def load_gan_data_fromnumpy(traindatapath, trainlabelspath):
     X = np.load(traindatapath)
     labels = np.load(trainlabelspath)
+    print('input label shape and X shape  = ', labels.shape, X.shape)
 
     X = -1*((X)/255. -1.) # for normalizing and making it black images
 
-    data_Y=torch.from_numpy(labels[:640000].astype(int))
-    data_X=torch.from_numpy(X[:640000].reshape(-1, 28*28))
+    data_Y=torch.from_numpy(labels[:X.shape[0]].astype(int))
+    data_X=torch.from_numpy(X.reshape(-1, 28*28))
+
+    #shuffle data_X and data_Y
+    shuffler = np.random.permutation(data_X.shape[0])
+    data_X_shuff = data_X[shuffler]
+    data_Y_shuff = data_Y[shuffler]
 
     print('data loaded')
     print('data_X = ', data_X)
@@ -160,7 +167,7 @@ def load_gan_data_fromnumpy(traindatapath, trainlabelspath):
     print('data_X shape = ', data_X.shape)
     print('data_Y shape = ', data_Y.shape)
 
-    return data_X, data_Y
+    return data_X_shuff, data_Y_shuff
 
 
 def get_params_models(data_X, data_Y):
@@ -265,11 +272,13 @@ def train_cgan(generator, discriminator, optim_gen, optim_disc, loss_fn, data_lo
     return genlosslist, dislosslist
 
 def saveplots(genlist, dislist, img_savepath):
+    plt.figure(figsize = (10, 10))
     plt.plot(genlist, label = "gen-loss")
     plt.plot(dislist, label = "dis-loss")
     plt.xlabel('training-steps')
     plt.ylabel('Loss')
     plt.savefig(os.path.join(img_savepath, "GAN_Loss.jpg"), dpi = 100)
+    plt.close()
 
 
 if __name__ == "__main__":

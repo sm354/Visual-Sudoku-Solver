@@ -13,6 +13,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--train_datapath', type=str, default = None)
 parser.add_argument('--target_array_file', type=str, default = None)
 parser.add_argument('--query_array_file', type=str, default = None)
+parser.add_argument('--query_target_array_file', type=str, default = None)
+
 
 args=parser.parse_args()
 
@@ -32,8 +34,8 @@ for img_name in sorted(os.listdir(dataset_path_target)):
     X.append(sub_imgs)
 
 X=np.array(X)
-X=X.reshape((-1,28,28))
-np.save(args.target_array_file, X)
+X_target=X.reshape((-1,28,28))
+np.save(args.target_array_file, X_target)
 
 # print(os.listdir(dataset_path_target)[:5])
 X=[] #this will contain 28,28 images
@@ -46,5 +48,10 @@ for img_name in sorted(os.listdir(dataset_path_query)):
     X.append(sub_imgs)
 
 X=np.array(X)
-X=X.reshape((-1,28,28))
-np.save(args.query_array_file, X)
+X_query=X.reshape((-1,28,28))
+np.save(args.query_array_file, X_query)
+
+X_combined_query_target = np.concatenate((X_query, X_target))
+print(X_combined_query_target.shape)
+np.save(args.query_target_array_file, X_combined_query_target)
+

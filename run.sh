@@ -11,7 +11,7 @@
 #PBS -l select=1:ngpus=1
 
 ### Specify "wallclock time" required for this job, hhh:mm:ss
-#PBS -l walltime=12:00:00
+#PBS -l walltime=2:00:00
 
 #PBS -l software=python
 # After job starts, must goto working directory. 
@@ -34,16 +34,31 @@ module load apps/anaconda/3
 # /usr/bin/time --verbose python clustering/clustering.py --savedir results/kmeans-pytorch --query_datapath ../sudoku_array_data/query_64k_images.npy --target_datapath ../sudoku_array_data/target_64k_images.npy --oneshot_datapath "../Assignment 2/sample_images.npy" --nclusters 8 --output_label_file results/kmeans-pytorch/kmeans_pyt_t8c_labels.npy --output_oneshot_label_file results/kmeans-pytorch/kmeans_pyt_t8c_oneshot_labels.npy --method pytorch-kmeans
 # python clustering/clustering.py --savedir results/kmeans-pytorch --query_datapath ../sudoku_array_data/query_64k_images.npy --target_datapath ../sudoku_array_data/target_64k_images.npy --oneshot_datapath "../Assignment 2/sample_images.npy" --nclusters 9 --output_label_file results/kmeans-pytorch/kmeans_pyt_qt9c_labels.npy --output_oneshot_label_file results/kmeans-pytorch/kmeans_pyt_qt9c_oneshot_labels.npy --method pytorch-kmeans
 
+#minibatch-kmeans-sampled
+# python clustering/clustering.py --savedir results/kmeans-sampled_15k --query_datapath ../sudoku_array_data/query_64k_images.npy --target_datapath ../sudoku_array_data/target_64k_images.npy --oneshot_datapath "../Assignment 2/sample_images.npy" --nclusters 9 --output_label_file results/kmeans-sampled_15k/kmeans_sampled_qt9c_labels.npy --output_oneshot_label_file results/kmeans-sampled_15k/kmeans_sampled_qt9c_oneshot_labels.npy --method minibatch-kmeans-sampled --sampled_X_path results/kmeans-sampled_15k/dataX_kmeans_sampled_qt9c.npy
+
 #make data
-# python load_sudoku_data.py --train_datapath "../Assignment 2/visual_sudoku/train" --target_array_file "../sudoku_array_data/target_64k_images.npy" --query_array_file "../sudoku_array_data/query_64k_images.npy"
+# python load_sudoku_data.py --train_datapath "../Assignment 2/visual_sudoku/train" --target_array_file "../sudoku_array_data/target_64k_images.npy" --query_array_file "../sudoku_array_data/query_64k_images.npy" --query_target_array_file "../sudoku_array_data/query_target_64k_images.npy"
 
 #saving labels as symbolic sudoku
 # python label2symbolic_sudoku.py --labels_path results/kmeans-minibatch/kmeans_mb_qt9c_labels.npy --output_symbolic_sud_path results/symbolic_data/symbolic_sudoku_kmeans_mb_tq.npy
 
 #train GAN
-python cGAN/train_cgan.py --root_path_to_save results/GAN_out/E2_100epochs --traindatapath ../sudoku_array_data/query_64k_images.npy --trainlabelspath results/kmeans-minibatch/kmeans_mb_qt9c_labels.npy --train_or_gen train --num_epochs 100
+#--on query data
+# python cGAN/train_cgan.py --root_path_to_save results/GAN_out/E2_100epochs --traindatapath ../sudoku_array_data/query_64k_images.npy --trainlabelspath results/kmeans-minibatch/kmeans_mb_qt9c_labels.npy --train_or_gen train --num_epochs 100
+#--onsampledkmeans data
+# python cGAN/train_cgan.py --root_path_to_save results/GAN_out/E6_sampledkmeans_100epochs --traindatapath results/kmeans-sampled_15k/dataX_kmeans_sampled_qt9c.npy --trainlabelspath results/kmeans-sampled_15k/kmeans_sampled_qt9c_labels.npy --train_or_gen train --num_epochs 100
+#--on query+target data
+python cGAN/train_cgan.py --root_path_to_save results/GAN_out/E7_querandtarget_100epochs --traindatapath ../sudoku_array_data/query_target_64k_images.npy --trainlabelspath results/kmeans-minibatch/kmeans_mb_qt9c_labels.npy --train_or_gen train --num_epochs 100
+
 
 #validate/generate from gan generator
+
+#train classifier for arabic mnist
+#---for kmeans
+# python classifier_arabicmnist.py --root_path_to_save results/classifier/E5_kmeans_train_query_9class --traindatapath ../sudoku_array_data/query_64k_images.npy --trainlabelspath results/kmeans-minibatch/kmeans_mb_qt9c_labels.npy --num_classes 9 --targetdatapath ../sudoku_array_data/target_64k_images.npy
+#--for sampled kmeans
+# python classifier_arabicmnist.py --root_path_to_save results/classifier/E4_sampledkmeans_train_query_9class --traindatapath results/kmeans-sampled_15k/dataX_kmeans_sampled_qt9c.npy --trainlabelspath results/kmeans-sampled_15k/kmeans_sampled_qt9c_labels.npy --num_classes 9 --targetdatapath ../sudoku_array_data/target_64k_images.npy
 
 #NOTE
 # The job line is an example : users need to change it to suit their applications
