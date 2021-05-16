@@ -1,0 +1,8 @@
+NOTE : Works with all available python packages in the module, check using conda list command
+For conda env creation we recommend apps/anaconda/3EnvCreation module
+Traceback (most recent call last):
+  File "clustering/clustering.py", line 208, in <module>
+    X, x_oneshot_data = load_data(args.query_datapath, args.target_datapath, args.oneshot_datapath, args.nclusters)
+  File "clustering/clustering.py", line 36, in load_data
+    X = X.reshape((-1,28*28)) #shape (640k or 1280k, 784)
+ValueError: cannot reshape array of size 1000000 into shape (784)

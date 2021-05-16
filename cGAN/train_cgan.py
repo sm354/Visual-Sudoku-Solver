@@ -36,7 +36,6 @@ def sample_img_grid(generator, device, numclasses, img_savepath = None):
     rows = numclasses
     fig1, f1_axes = plt.subplots(ncols=cols, nrows=rows, figsize=(10,10))
     for index in range(rows):
-
         for ind in range(cols):
             with torch.no_grad():
                 z=torch.rand(1,100).to(device)
@@ -115,7 +114,7 @@ class Discriminator(nn.Module):
         super(Discriminator, self).__init__()
         self.embedding = nn.Embedding.from_pretrained(torch.tensor(np.eye(num_labels)).float(), freeze = True)
         self.L1 = nn.Sequential(
-          nn.Dropout(0.5), #dropout at the beginning
+        #   nn.Dropout(0.5), #dropout at the beginning
 
           Maxout_layer(input_dim=input_dim, output_dim=240, pieces=5),
           nn.ReLU(),
@@ -166,6 +165,13 @@ def load_gan_data_fromnumpy(traindatapath, trainlabelspath):
     print('data_Y = ', data_Y)
     print('data_X shape = ', data_X.shape)
     print('data_Y shape = ', data_Y.shape)
+
+    print('after shuffling data')
+    print('data_X_shuff = ', data_X_shuff)
+    print('data_Y_shuff = ', data_Y_shuff)
+    print('data_X_shuff shape = ', data_X_shuff.shape)
+    print('data_Y_shuff shape = ', data_Y_shuff.shape)
+
 
     return data_X_shuff, data_Y_shuff
 
@@ -296,14 +302,17 @@ if __name__ == "__main__":
     #number of epochs, default is 100
     parser.add_argument('--num_epochs', type=int, default = 100)
     #for saving genmodel, dismodel and plots from training
-    parser.add_argument('--root_path_to_save', type=str)
-
+    parser.add_argument('--root_path_to_save', type=str, default = None)
+    #for saving generated images and correspoding labels
+    parser.add_argument('--gen9k_path', type = str, default = None)
+    parser.add_argument('--target9k_path', type = str, default = None)
     args=parser.parse_args()
 
-    if not os.path.exists(args.root_path_to_save):
-        os.makedirs(args.root_path_to_save)
 
     if(args.train_or_gen == "train"):
+        
+        if not os.path.exists(args.root_path_to_save):
+            os.makedirs(args.root_path_to_save)
 
         device='cuda:0' if torch.cuda.is_available() else 'cpu'
 
@@ -327,11 +336,26 @@ if __name__ == "__main__":
     elif(args.train_or_gen == "generate"):
         # generate 1000 images from each class, also print 
         # fid score between true and generated classes
+        device='cuda:0' if torch.cuda.is_available() else 'cpu'
 
-        # load generator and discriminator
+        # load generator
         generator = torch.load(args.gen_model_pretr)
+        generator.train()
         # note: DONT PUT MODEL IN EVAL MODE
 
         # generate_images and save
-        # for i in range(9):
-            #generate and save images for ith class
+        class_labels = [i for b in range(1000) for i in range(9)] #[0000...., 1111, ......888888 each 1000 labels ]
+        class_labels = torch.tensor(class_labels).to(device)
+        assert(class_labels.shape[0] == 9000)
+        z=torch.rand(9000,100).to(device)
+        with torch.no_grad():
+            x_fake = generator(z, class_labels)
+        x_fake=x_fake.cpu().numpy()
+        x_fake = -1*x_fake + 1 #converting to white images still between 0 and 1
+        class_labels=class_labels.cpu().numpy()
+
+        np.save(args.gen9k_path, x_fake)
+        np.save(args.target9k_path, class_labels)
+
+
+

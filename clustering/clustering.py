@@ -23,13 +23,18 @@ def load_data(query_data, target_data, oneshot_data_path, nclusters):
 		X = np.load(target_data)
 	elif(nclusters == 9):
 		X_query=np.load(query_data)
-		X_target=np.load(target_data)
-		X = np.concatenate((X_query, X_target))
+		if(target_data is not None):
+			print('combingin query + target and we have to cluster into 9 classes')
+			X_target=np.load(target_data)
+			X = np.concatenate((X_query, X_target))
+		else:
+			print('target data not given. we have only query to cluster into 9 classes')
+			X = X_query
 	
 	oneshot_data = np.load(oneshot_data_path)
 	X = (X)/255. #normalization
-	X = X.reshape((-1,28*28)) #shape (640k or 1280k, 784)
-	oneshot_data = oneshot_data.reshape((-1, 28*28))/(255.) #shape 10, 784
+	X = X.reshape((X.shape[0],-1)) #shape (640k or 1280k, 784)
+	oneshot_data = oneshot_data.reshape((oneshot_data.shape[0], -1))/(255.) #shape 10, 784
 	# x_oneshot_target = x_oneshot[:-1] #from 0th class to 8th class, 9th dropped as its no where in the images i THINK
 
 	print('shape of X = ', X.shape)

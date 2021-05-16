@@ -50,6 +50,9 @@ labels = np.load("/home/ee/btech/ee1180957/scratch/Harman/DL-ASS2/COL870-Assignm
 
 # labels = np.load("results/kmeans-pytorch/kmeans_pyt_t8c_labels.npy")
 
+# labels = np.load("/home/ee/btech/ee1180957/scratch/Harman/DL-ASS2/COL870-Assignment-2/results/kmeans-sampled_15k/kmeans_sampled_qt9c_labels.npy")
+
+
 print(labels[0:1000])
 print(labels.shape)
 # print(clustering_accuracy(labels[:64000]))

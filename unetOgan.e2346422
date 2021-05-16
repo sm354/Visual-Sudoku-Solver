@@ -1,0 +1,3 @@
+NOTE : Works with all available python packages in the module, check using conda list command
+For conda env creation we recommend apps/anaconda/3EnvCreation module
+/var/spool/PBS/mom_priv/jobs/2346422.pbshpc.SC: line 75: 14035 Killed                  python3 vggnet_embeddings.py
