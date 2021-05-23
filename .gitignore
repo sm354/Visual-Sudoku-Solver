@@ -1,1 +1,4 @@
 results/*
+Joint_training/saved_models/*
+Joint_training/extra_models/*
+Joint_training/saved_results/*

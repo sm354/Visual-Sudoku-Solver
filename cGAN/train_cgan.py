@@ -190,13 +190,13 @@ def get_params_models(data_X, data_Y):
     # loss_fn = nn.BCELoss() # or may use MSE
     loss_fn = nn.BCEWithLogitsLoss()
 
-    optim_disc=optim.Adam(discriminator.parameters(), lr=0.00002)
-    optim_gen=optim.Adam(generator.parameters(), lr=0.00002)
+    # optim_disc=optim.Adam(discriminator.parameters(), lr=0.00002)
+    # optim_gen=optim.Adam(generator.parameters(), lr=0.00002)
 
-    # optim_disc=optim.SGD(discriminator.parameters(),lr=0.0001,momentum=0.5)
-    # scheduler_disc=optim.lr_scheduler.ExponentialLR(optim_disc, 1/1.00004)
-    # optim_gen=optim.SGD(generator.parameters(),lr=0.0001,momentum=0.5)
-    # scheduler_gen=optim.lr_scheduler.ExponentialLR(optim_gen, 1/1.00004)
+    optim_disc=optim.SGD(discriminator.parameters(),lr=0.0001,momentum=0.5)
+    scheduler_disc=optim.lr_scheduler.ExponentialLR(optim_disc, 1/1.00004)
+    optim_gen=optim.SGD(generator.parameters(),lr=0.0001,momentum=0.5)
+    scheduler_gen=optim.lr_scheduler.ExponentialLR(optim_gen, 1/1.00004)
 
     generator=generator.to(device)
     discriminator=discriminator.to(device)
@@ -344,10 +344,11 @@ if __name__ == "__main__":
         # note: DONT PUT MODEL IN EVAL MODE
 
         # generate_images and save
-        class_labels = [i for b in range(1000) for i in range(9)] #[0000...., 1111, ......888888 each 1000 labels ]
+        num = 10000
+        class_labels = [i for b in range(num) for i in range(9)] #[0000...., 1111, ......888888 each 1000 labels ]
         class_labels = torch.tensor(class_labels).to(device)
-        assert(class_labels.shape[0] == 9000)
-        z=torch.rand(9000,100).to(device)
+        assert(class_labels.shape[0] == 9*num)
+        z=torch.rand(9*num,100).to(device)
         with torch.no_grad():
             x_fake = generator(z, class_labels)
         x_fake=x_fake.cpu().numpy()

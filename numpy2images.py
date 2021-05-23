@@ -24,17 +24,30 @@ if __name__ == "__main__":
     np_img = np_img[:args.num_images]
     np_img_tosave = np_img.reshape(-1, 28, 28)
 
+    # normalize
+    if(np.max(np_img_tosave)>200):
+        np_img_tosave = np_img_tosave/255.
+    print(np_img_tosave)
+
     for img_index in range(args.num_images):
         # print(np_img_tosave.shape)
         y = np_img_tosave[img_index]
         y = y.reshape((28,28))
-        plt.imshow(y, cmap='gray')
-        plt.axis('off')
-        plt.savefig(os.path.join(args.savedir, "{}.png".format(img_index)))
-        plt.close()
-        # plt.imsave(os.path.join(args.savedir, "{}.png".format(img_index)), y)
+        # plt.imshow(y, cmap='gray')
+        # plt.axis('off')
+        # # plt.savefig(os.path.join(args.savedir, "{}.png".format(img_index)))
+        # plt.savefig("{}.png".format(img_index))
+        # plt.close()
 
-        # im = Image.fromarray(np_img_tosave[img_index]).convert("L")
-        # im.save(os.path.join(args.savedir, "{}.png".format(img_index)))
+        im = Image.fromarray(y*255.).convert("L")
+        im.save(os.path.join(args.savedir, "{}.png".format(img_index)))
+
         # if(img_index<5):
         #     break
+
+    img = np.array(Image.open("/home/ee/btech/ee1180957/scratch/Harman/DL-ASS2/COL870-Assignment-2/results/real_images_9k_28/1.png"))
+    print(img.shape)
+    print(img)
+
+        # plt.imsave(os.path.join(args.savedir, "{}.png".format(img_index)), y)
+

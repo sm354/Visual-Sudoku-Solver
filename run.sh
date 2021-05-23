@@ -11,7 +11,7 @@
 #PBS -l select=1:ngpus=1
 
 ### Specify "wallclock time" required for this job, hhh:mm:ss
-#PBS -l walltime=1:00:00
+#PBS -l walltime=10:00:00
 
 #PBS -l software=python
 # After job starts, must goto working directory. 
@@ -36,6 +36,7 @@ module load apps/anaconda/3
 
 #minibatch-kmeans-sampled
 # python clustering/clustering.py --savedir results/kmeans-sampled_15k --query_datapath ../sudoku_array_data/query_64k_images.npy --target_datapath ../sudoku_array_data/target_64k_images.npy --oneshot_datapath "../Assignment 2/sample_images.npy" --nclusters 9 --output_label_file results/kmeans-sampled_15k/kmeans_sampled_qt9c_labels.npy --output_oneshot_label_file results/kmeans-sampled_15k/kmeans_sampled_qt9c_oneshot_labels.npy --method minibatch-kmeans-sampled --sampled_X_path results/kmeans-sampled_15k/dataX_kmeans_sampled_qt9c.npy
+# python clustering/clustering.py --savedir results/kmeans-sampled_15k_10each --query_datapath ../sudoku_array_data/query_64k_images.npy --target_datapath ../sudoku_array_data/target_64k_images.npy --oneshot_datapath "../Assignment 2/sample_images.npy" --nclusters 9 --output_label_file results/kmeans-sampled_15k_10each/kmeans_sampled_qt9c_labels.npy --output_oneshot_label_file results/kmeans-sampled_15k_10each/kmeans_sampled_qt9c_oneshot_labels.npy --method minibatch-kmeans-sampled --sampled_X_path results/kmeans-sampled_15k_10each/dataX_kmeans_sampled_qt9c.npy
 
 #minibatch-kmeans on vgg data
 # python clustering/clustering.py --savedir results/kmeans-vgg --query_datapath results/vggnet_embeddings/X_query_target_vggnet.npy --oneshot_datapath results/vggnet_embeddings/oneshot_data_vggnet.npy --nclusters 9 --output_label_file results/kmeans-vgg/kmeans_vgg_qt9c_labels.npy --output_oneshot_label_file results/kmeans-vgg/kmeans_vgg_qt9c_oneshot_labels.npy --method minibatch-kmeans
@@ -54,9 +55,13 @@ module load apps/anaconda/3
 # python cGAN/train_cgan.py --root_path_to_save results/GAN_out/E13_nodrop_sampledkmeans_200epochs --traindatapath results/kmeans-sampled_15k/dataX_kmeans_sampled_qt9c.npy --trainlabelspath results/kmeans-sampled_15k/kmeans_sampled_qt9c_labels.npy --train_or_gen train --num_epochs 200
 #--on query+target data
 # python cGAN/train_cgan.py --root_path_to_save results/GAN_out/E14_nodrop_querandtarget_150epochs --traindatapath ../sudoku_array_data/query_target_64k_images.npy --trainlabelspath results/kmeans-minibatch/kmeans_mb_qt9c_labels.npy --train_or_gen train --num_epochs 150
+#------------SGD on query +target
+# python cGAN/train_cgan.py --root_path_to_save results/GAN_out/E15_sgd0.0001_drop_querandtarget_150epochs --traindatapath ../sudoku_array_data/query_target_64k_images.npy --trainlabelspath results/kmeans-minibatch/kmeans_mb_qt9c_labels.npy --train_or_gen train --num_epochs 150
+# python cGAN/train_cgan.py --root_path_to_save results/GAN_out/E16_sgdgen5e3dis1e3_drop_querandtarget_150epochs --traindatapath ../sudoku_array_data/query_target_64k_images.npy --trainlabelspath results/kmeans-minibatch/kmeans_mb_qt9c_labels.npy --train_or_gen train --num_epochs 150
+# python cGAN/train_cgan.py --root_path_to_save results/GAN_out/E17_sgdgen1e2dis1e2_drop_querandtarget_150epochs --traindatapath ../sudoku_array_data/query_target_64k_images.npy --trainlabelspath results/kmeans-minibatch/kmeans_mb_qt9c_labels.npy --train_or_gen train --num_epochs 150
 
 
-#validate/generate from gan generator
+#validate/generate from gan generator in form of npy files
 # python cGAN/train_cgan.py --gen_model_pretr results/GAN_out/E8_querandtarget_150epochs/gen_trained.pth --gen9k_path results/GAN_out/E8_querandtarget_150epochs/gen9k.npy --target9k_path results/GAN_out/E8_querandtarget_150epochs/target9k.npy --train_or_gen generate
 
 #convert numpy generated images to png images 
@@ -67,12 +72,18 @@ module load apps/anaconda/3
 
 #train classifier for arabic mnist
 #---for kmeans
-# python classifier_arabicmnist.py --root_path_to_save results/classifier/E5_kmeans_train_query_9class --traindatapath ../sudoku_array_data/query_64k_images.npy --trainlabelspath results/kmeans-minibatch/kmeans_mb_qt9c_labels.npy --num_classes 9 --targetdatapath ../sudoku_array_data/target_64k_images.npy
+# python classifier_arabicmnist.py --root_path_to_save results/classifier/E7_kmeans_train_query_9class --traindatapath ../sudoku_array_data/query_64k_images.npy --trainlabelspath results/kmeans-minibatch/kmeans_mb_qt9c_labels.npy --num_classes 9 --targetdatapath ../sudoku_array_data/target_64k_images.npy
+# python Joint_training/classifier_arabicmnist.py --root_path_to_save results/classifier/testing_classifier --traindatapath ../sudoku_array_data/query_target_64k_images.npy --trainlabelspath results/kmeans-minibatch/kmeans_mb_qt9c_labels.npy --num_classes 9 --targetdatapath ../sudoku_array_data/target_64k_images.npy
+
 #--for sampled kmeans
-# python classifier_arabicmnist.py --root_path_to_save results/classifier/E4_sampledkmeans_train_query_9class --traindatapath results/kmeans-sampled_15k/dataX_kmeans_sampled_qt9c.npy --trainlabelspath results/kmeans-sampled_15k/kmeans_sampled_qt9c_labels.npy --num_classes 9 --targetdatapath ../sudoku_array_data/target_64k_images.npy
+# python classifier_arabicmnist.py --root_path_to_save results/classifier/E10_sampledkmeans_train_query_9class --traindatapath results/kmeans-sampled_15k/dataX_kmeans_sampled_qt9c.npy --trainlabelspath results/kmeans-sampled_15k/kmeans_sampled_qt9c_labels.npy --num_classes 9 --targetdatapath ../sudoku_array_data/target_64k_images.npy
 
 #vggnet embeddigns
 # python vggnet_embeddings.py
+
+
+#fid 
+# python -m pytorch_fid --device "cuda:0" results/GAN_out/E8_querandtarget_150epochs/gen_imgs_28/ results/real_images_9k_28/
 
 #NOTE
 # The job line is an example : users need to change it to suit their applications

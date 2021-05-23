@@ -170,8 +170,15 @@ def perform_minibatchkmeans_sampled(X, x_oneshot_data, nclusters):
 			X_class_sampled = X_class[partition[:num_points_perclass]]  
 			labels_class_sampled = labels_class[partition[:num_points_perclass]]    
 
-		X_new.append(X_class_sampled)
-		labels_new.append(labels_class_sampled)
+
+		shuffler = np.random.permutation(X_class_sampled.shape[0])
+		X_class_sampled = X_class_sampled[shuffler]
+		X_new.append(X_class_sampled[:1000])
+		labels_new.append(labels_class_sampled[:1000])
+
+		# X_new.append(X_class_sampled)
+		# labels_new.append(labels_class_sampled)
+
 
 	X = np.concatenate(X_new)
 	labels = np.concatenate(labels_new)
