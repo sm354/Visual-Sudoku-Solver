@@ -75,9 +75,12 @@ class RRN(nn.Module):
 
         # LSTM for looping over time i.e. num_steps
         self.LSTM = nn.LSTMCell(input_size=hidden_dim, hidden_size=hidden_dim) # since x and m will be concatentated and fed into lstm; x and m are of shape : batch_size*8*8, hidden_dim
+
+
+        self.linear_try = nn.Linear(9, 9)
+        self.softmax = nn.Softmax(dim = 1)
         
-        
-    def forward(self, inp, y_true=None, loss_fn=None):  # inp.shape=batch_size,8*8,9 if we are using classifier output
+    def forward(self, inp, y_true=None, loss_fn=None, training = True):  # inp.shape=batch_size,8*8,9 if we are using classifier output
 
         device='cuda:0' if torch.cuda.is_available() else 'cpu'
 
@@ -85,15 +88,15 @@ class RRN(nn.Module):
         bs = inp.shape[0]
         inp = inp.view(-1, inp.shape[-1]) #now of shape(b*8*8, 9)
 
-        # embed the cell content
-        inp = F.one_hot(torch.argmax(inp, dim = 1), self.embed_dim).float()
-
-
-        embedded_inp = inp #self.embed_1(inp) # batch_size*8*8, embed_dim
+        
+        
+        # change inp if argmax is 7 (INDUCTIVE BIAS)
+        # inp[torch.argmax(inp, dim=1) == 7] = self.softmax(self.linear_try(inp[torch.argmax(inp, dim=1) == 7]))
+        
 
         #probabilistic and not one hot for joint training
-        # zeros_toconcat = torch.zeros(inp.shape[0], self.embed_dim-inp.shape[1]).to(device)
-        # embedded_inp = torch.cat((inp, zeros_toconcat), dim = 1).float()
+        zeros_toconcat = torch.zeros(inp.shape[0], self.embed_dim-inp.shape[1]).to(device)
+        embedded_inp = torch.cat((inp, zeros_toconcat), dim = 1).float()
 
 
         # now also get row and column info of each cell embedded
@@ -130,7 +133,17 @@ class RRN(nn.Module):
             
             h_for_msgs = h
             o = self.r_to_o_mlp(c)
-            
-            l += loss_fn(o,y_true.long())
+
+            if training:
+                l += loss_fn(o,y_true.long())
         out = o
-        return (out,l) # out.shape = num_steps, batch_size*8*8, 9 : last dim is without-softmax over sudoku_cells(9)
+        
+        if training:
+            return (out,l) # out.shape = batch_size*8*8, 9 : last dim is without-softmax over sudoku_cells(9)
+        else:
+            return out
+
+                        
+        #     l += loss_fn(o,y_true.long())
+        # out = o
+        # return (out,l) # out.shape = num_steps, batch_size*8*8, 9 : last dim is without-softmax over sudoku_cells(9)
